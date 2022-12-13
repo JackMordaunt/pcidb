@@ -5,8 +5,6 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
-
-	homedir "github.com/mitchellh/go-homedir"
 )
 
 // Concrete merged set of configuration switches that get passed to pcidb
@@ -34,12 +32,12 @@ func contextFromOptions(merged *WithOption) *context {
 }
 
 func getCachePath() string {
-	hdir, err := homedir.Dir()
+	hdir, err := os.UserHomeDir()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed getting homedir.Dir(): %v", err)
 		return ""
 	}
-	fp, err := homedir.Expand(filepath.Join(hdir, ".cache", "pci.ids"))
+	fp, err := Expand(filepath.Join(hdir, ".cache", "pci.ids"))
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed expanding local cache path: %v", err)
 		return ""
@@ -83,4 +81,28 @@ func (ctx *context) setSearchPaths() {
 			filepath.Join(rootPath, "usr", "share", "misc", "pci.ids.gz"),
 		)
 	}
+}
+
+// Expand expands the path to include the home directory if the path
+// is prefixed with `~`. If it isn't prefixed with `~`, the path is
+// returned as-is.
+func Expand(path string) (string, error) {
+	if len(path) == 0 {
+		return path, nil
+	}
+
+	if path[0] != '~' {
+		return path, nil
+	}
+
+	if len(path) > 1 && path[1] != '/' && path[1] != '\\' {
+		return "", fmt.Errorf("cannot expand user-specific home dir")
+	}
+
+	dir, err := os.UserHomeDir()
+	if err != nil {
+		return "", err
+	}
+
+	return filepath.Join(dir, path[1:]), nil
 }
