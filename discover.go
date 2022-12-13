@@ -18,7 +18,7 @@ import (
 
 const (
 	PCIIDS_URI = "https://pci-ids.ucw.cz/v2.2/pci.ids.gz"
-	USER_AGENT = "golang-jaypipes-pcidb"
+	USER_AGENT = "golang-jackmordaunt-pcidb"
 )
 
 func (db *PCIDB) load(ctx *context) error {
